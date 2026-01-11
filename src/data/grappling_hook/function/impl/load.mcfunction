@@ -18,9 +18,12 @@ scoreboard objectives add grappling_hook.launch.z dummy
 
 scoreboard players set #-1 grappling_hook.data -1
 scoreboard players set #2 grappling_hook.data 2
+scoreboard players set #3 grappling_hook.data 3
+scoreboard players set #4 grappling_hook.data 4
+scoreboard players set #1000 grappling_hook.data 600
 
 # config
-scoreboard players set #max_abs_speed grappling_hook.data 100000
+scoreboard players set #max_abs_speed grappling_hook.data 10000
 
 
 schedule function grappling_hook:impl/tick 1t replace

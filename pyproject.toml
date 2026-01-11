@@ -6,17 +6,22 @@ authors = ["edayot <pro.e.dayot@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.14"
 simple-item-plugin = ">=0.22.1"
 model-resolver = ">=0.12.0"
+smithed = "^0.19.0"
+bolt = ">=0.50.0b5"
+mecha = ">=0.102.0b2"
+
+
 
 [tool.poetry.dev-dependencies]
 python-semantic-release = "^8.7.0"
 
 
 [tool.beet.meta]
-mc_supports = ["1.21.5"]
-minecraft_version = "1.21"
+mc_supports = ["1.21.11"]
+minecraft_version = "1.21.11"
 modrinth_id = "bpmXxZTt"
 
 
@@ -24,13 +29,18 @@ modrinth_id = "bpmXxZTt"
 generate_guide = true
 item_for_pack_png = "basic_grappling_hook"
 items_on_first_page = true
+load_function = "grappling_hook:impl/load"
 
 [tool.beet.meta.model_merging]
 predicate_order = ["custom_model_data", "pulling", "pull", "charged", "firework"]
 
+[tool.beet.meta.weld_deps]
+merge_with_weld = false
+merge_after = true
+
 [tool.beet.meta.weld_deps.deps]
-"player_motion" = "1.4.2"
-"crafter" = "0.7.0"
+"player_motion" = "latest"
+"crafter" = "latest"
 
 [tool.semantic_release]
 major_on_zero = false
@@ -67,8 +77,8 @@ pipeline = [
     "grappling_hook",
 ]
 require=[
+    "weld_deps.contrib.mecha_auto_include.require",
     "bolt",
-    "weld_deps",
     "mecha.contrib.relative_location",
     "mecha.contrib.nested_location",
 ]
@@ -94,7 +104,7 @@ match = ["grappling_hook:**"]
 render_size = 256
 load_vanilla = true
 save_namespace = "grappling_hook"
-minecraft_version = "1.21.4"
+minecraft_version = "1.21.11"
 
 
 
@@ -109,11 +119,11 @@ function_path="impl/test_load"
 [tool.beet.meta.smithed.versioning.refactor]
 match="{{ project_id }}:*"
 find="{{ project_id }}:impl/"
-replace="{{ project_id }}:v{{ version }}/"
+replace="{{ project_id }}:v{{ project_version }}/"
 
 
 [tool.beet.meta.smithed.versioning.api]
-match="{{ project_id }}:v{{ version }}"
-implementation_prefix="{{ project_id }}:v{{ version }}/"
-version_check_path="v{{ version }}/calls"
+match="{{ project_id }}:v{{ project_version }}"
+implementation_prefix="{{ project_id }}:v{{ project_version }}/"
+version_check_path="v{{ project_version }}/calls"
 tag_path="calls"

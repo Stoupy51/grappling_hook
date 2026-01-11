@@ -33,30 +33,42 @@ execute
         scoreboard players operation #dy grappling_hook.data *= #power grappling_hook.data
         scoreboard players operation #dz grappling_hook.data *= #power grappling_hook.data
 
-        scoreboard players operation #dy grappling_hook.data /= #2 grappling_hook.data
-        execute if score #dy grappling_hook.data matches ..1000 run scoreboard players set #dy grappling_hook.data 1000
+        scoreboard players set #minimal_dy grappling_hook.data 100
+        scoreboard players operation #minimal_dy grappling_hook.data *= #power grappling_hook.data
+
+        scoreboard players operation #dy grappling_hook.data /= #3 grappling_hook.data
+        execute if score #dy grappling_hook.data < #minimal_dy grappling_hook.data run scoreboard players operation #dy grappling_hook.data = #minimal_dy grappling_hook.data
         scoreboard players add #dy grappling_hook.data 8000
 
-        scoreboard players operation #abs_dx grappling_hook.data = #dx grappling_hook.data
-        scoreboard players operation #abs_dy grappling_hook.data = #dy grappling_hook.data
-        scoreboard players operation #abs_dz grappling_hook.data = #dz grappling_hook.data
+        scoreboard players operation $vector.length.0 bs.in = #dx grappling_hook.data
+        scoreboard players operation $vector.length.1 bs.in = #dy grappling_hook.data
+        scoreboard players operation $vector.length.2 bs.in = #dz grappling_hook.data
 
-        execute if score #dx grappling_hook.data matches ..0 run scoreboard players operation #abs_dx grappling_hook.data *= #-1 grappling_hook.data
-        execute if score #dy grappling_hook.data matches ..0 run scoreboard players operation #abs_dy grappling_hook.data *= #-1 grappling_hook.data
-        execute if score #dz grappling_hook.data matches ..0 run scoreboard players operation #abs_dz grappling_hook.data *= #-1 grappling_hook.data
+        function #bs.vector:length
 
-        execute if score #abs_dx grappling_hook.data > #current_max_abs_speed grappling_hook.data run scoreboard players operation #abs_dx grappling_hook.data = #current_max_abs_speed grappling_hook.data
-        execute if score #abs_dy grappling_hook.data > #current_max_abs_speed grappling_hook.data run scoreboard players operation #abs_dy grappling_hook.data = #current_max_abs_speed grappling_hook.data
-        execute if score #abs_dz grappling_hook.data > #current_max_abs_speed grappling_hook.data run scoreboard players operation #abs_dz grappling_hook.data = #current_max_abs_speed grappling_hook.data
+        scoreboard players operation #max_abs_length grappling_hook.data = #max_abs_speed grappling_hook.data
+        scoreboard players operation #max_abs_length grappling_hook.data *= #power grappling_hook.data
 
-        execute if score #dx grappling_hook.data matches ..0 run scoreboard players operation #abs_dx grappling_hook.data *= #-1 grappling_hook.data
-        execute if score #dy grappling_hook.data matches ..0 run scoreboard players operation #abs_dy grappling_hook.data *= #-1 grappling_hook.data
-        execute if score #dz grappling_hook.data matches ..0 run scoreboard players operation #abs_dz grappling_hook.data *= #-1 grappling_hook.data
+        execute
+            if score $vector.length bs.out > #max_abs_length grappling_hook.data
+            run function ./normalise_and_scale:
+                say Normalizing and scaling motion vector
+                scoreboard players operation $vector.normalize.0 bs.in = #dx grappling_hook.data
+                scoreboard players operation $vector.normalize.1 bs.in = #dy grappling_hook.data
+                scoreboard players operation $vector.normalize.2 bs.in = #dz grappling_hook.data
 
-        scoreboard players operation #dx grappling_hook.data = #abs_dx grappling_hook.data
-        scoreboard players operation #dy grappling_hook.data = #abs_dy grappling_hook.data
-        scoreboard players operation #dz grappling_hook.data = #abs_dz grappling_hook.data
+                function #bs.vector:normalize {scale:1000}
 
+                scoreboard players operation #dx grappling_hook.data = $vector.normalize.0 bs.out
+                scoreboard players operation #dy grappling_hook.data = $vector.normalize.1 bs.out
+                scoreboard players operation #dz grappling_hook.data = $vector.normalize.2 bs.out
+
+                scoreboard players operation #factor grappling_hook.data = #max_abs_length grappling_hook.data
+                scoreboard players operation #factor grappling_hook.data /= #1000 grappling_hook.data
+
+                scoreboard players operation #dx grappling_hook.data *= #factor grappling_hook.data
+                scoreboard players operation #dy grappling_hook.data *= #factor grappling_hook.data
+                scoreboard players operation #dz grappling_hook.data *= #factor grappling_hook.data
 
         scoreboard players set @s grappling_hook.launch.delay 1
         scoreboard players operation @s grappling_hook.launch.x = #dx grappling_hook.data
