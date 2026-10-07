@@ -1,6 +1,6 @@
 [project]
 name = "grappling_hook"
-version = "1.4.1"
+version = "1.4.0"
 description = ""
 authors = [{ name = "edayot", email = "pro.e.dayot@gmail.com" }]
 readme = "README.md"

@@ -1,126 +1,58 @@
-schedule function ~/ 1t replace
+schedule function grappling_hook:impl/tick 1t replace
 
 
-execute as @e[type=arrow, tag=grappling_hook.arrow] at @s run function ~/arrow:
-    scoreboard players operation #SEARCH_ID grappling_hook.data = @s grappling_hook.data
-    
-    data modify entity @s life set value -1
-
-    execute on origin run function ~/setup_player:
-        tag @s add grappling_hook.me
-        data modify storage grappling_hook:temp pos1 set from entity @s Pos
-        execute if entity @s[predicate=grappling_hook:impl/sneaking] run function ~/disable_grappling:
-            kill @e[predicate=grappling_hook:impl/search_id, type=!player]
-    
-    tag @s add grappling_hook.arrow.me
-
-    data modify storage grappling_hook:temp pos2 set from entity @s Pos
-    function grappling_hook:impl/calc_distance
-
-    execute as @e[type=item_display, tag=grappling_hook.rope, predicate=grappling_hook:impl/search_id] run function ~/update_leash:
-        execute at @n[type=minecraft:arrow, tag=grappling_hook.arrow.me] run tp @s ~ ~ ~
-        execute at @s facing entity @p[tag=grappling_hook.me] feet run tp @s ~ ~ ~ ~ ~
-
-        data modify entity @s transformation.scale[2] set from storage grappling_hook:temp distance
-        data modify entity @s transformation.translation[2] set compute default float (storage grappling_hook:temp distance)/2
-
-    data modify storage grappling_hook:temp v set value [0d,0d,0d]
-    data modify storage grappling_hook:temp v set from entity @s data.grappling_hook.prev_motion
-
-    data modify storage grappling_hook:temp v[1] set compute default float (storage grappling_hook:temp v[1] + -0.08)
-
-    data modify storage grappling_hook:temp v[0] set compute default float (storage grappling_hook:temp v[0] * 0.98)
-    data modify storage grappling_hook:temp v[1] set compute default float (storage grappling_hook:temp v[1] * 0.98)
-    data modify storage grappling_hook:temp v[2] set compute default float (storage grappling_hook:temp v[2] * 0.98)
-
-    data modify storage grappling_hook:temp rope_size set from entity @s data.grappling_hook.rope_size
-
-    execute if predicate {
-        "type": "minecraft:float_value_check",
-        "value": {
-            "type": "minecraft:storage",
-            "storage": "grappling_hook:temp",
-            "path": "distance",
-            "fallback": -1
-        },
-        "test": {
-            "min": {
-                "type": "minecraft:storage",
-                "storage": "grappling_hook:temp",
-                "path": "rope_size",
-                "fallback": 0
-            }
-        }
-    } run function ~/pulling:
-
-        data modify storage grappling_hook:temp d set value [0d,0d,0d]
-        data modify storage grappling_hook:temp d set from storage grappling_hook:temp pos1
-        data modify storage grappling_hook:temp d[0] set compute default float (storage grappling_hook:temp d[0] - storage grappling_hook:temp pos2[0])
-        data modify storage grappling_hook:temp d[1] set compute default float (storage grappling_hook:temp d[1] - storage grappling_hook:temp pos2[1])
-        data modify storage grappling_hook:temp d[2] set compute default float (storage grappling_hook:temp d[2] - storage grappling_hook:temp pos2[2])
-    
-        data modify storage grappling_hook:temp n set value [0d,0d,0d]
-        data modify storage grappling_hook:temp n set from storage grappling_hook:temp d
-        data modify storage grappling_hook:temp n[0] set compute default float (storage grappling_hook:temp n[0])/(storage grappling_hook:temp distance)
-        data modify storage grappling_hook:temp n[1] set compute default float (storage grappling_hook:temp n[1])/(storage grappling_hook:temp distance)
-        data modify storage grappling_hook:temp n[2] set compute default float (storage grappling_hook:temp n[2])/(storage grappling_hook:temp distance)
-
-        data modify storage grappling_hook:temp vr set value 0
-        data modify storage grappling_hook:temp vr set compute default float (
-            (storage grappling_hook:temp v[0] * storage grappling_hook:temp n[0]) +
-            (storage grappling_hook:temp v[1] * storage grappling_hook:temp n[1]) +
-            (storage grappling_hook:temp v[2] * storage grappling_hook:temp n[2])
-        )
-
-        execute if predicate {
-            "type": "minecraft:float_value_check",
-            "value": {
-                "type": "minecraft:storage",
-                "storage": "grappling_hook:temp",
-                "path": "vr",
-                "fallback": -1
-            },
-            "test": {
-                "min": 0
-            }
-        } run function ~/pull:
-            data modify storage grappling_hook:temp v[0] set compute default float (storage grappling_hook:temp v[0] - storage grappling_hook:temp n[0] * storage grappling_hook:temp vr)
-            data modify storage grappling_hook:temp v[1] set compute default float (storage grappling_hook:temp v[1] - storage grappling_hook:temp n[1] * storage grappling_hook:temp vr)
-            data modify storage grappling_hook:temp v[2] set compute default float (storage grappling_hook:temp v[2] - storage grappling_hook:temp n[2] * storage grappling_hook:temp vr)
-
-        data modify storage grappling_hook:temp factor set compute default float (
-            (storage grappling_hook:temp distance - storage grappling_hook:temp rope_size) * 0.1
-        )
-        data modify storage grappling_hook:temp v[0] set compute default float (
-            storage grappling_hook:temp v[0] - storage grappling_hook:temp n[0] * storage grappling_hook:temp factor
-        )
-        data modify storage grappling_hook:temp v[1] set compute default float (
-            storage grappling_hook:temp v[1] - storage grappling_hook:temp n[1] * storage grappling_hook:temp factor
-        )
-        data modify storage grappling_hook:temp v[2] set compute default float (
-            storage grappling_hook:temp v[2] - storage grappling_hook:temp n[2] * storage grappling_hook:temp factor
-        )
+execute
+    as @a[scores={grappling_hook.launch.delay=1..}]
+    run function ./delayed_launch:
+        execute 
+            if score @s grappling_hook.launch.delay matches 1
+            run function ./launch:
+                scoreboard players operation $x player_motion.api.launch = @s grappling_hook.launch.x
+                scoreboard players operation $y player_motion.api.launch = @s grappling_hook.launch.y
+                scoreboard players operation $z player_motion.api.launch = @s grappling_hook.launch.z
+                function player_motion:api/launch_xyz
+        scoreboard players remove @s grappling_hook.launch.delay 1
+        
 
 
 
-    execute 
-        as @e[type=item_display, tag=grappling_hook.swinger, predicate=grappling_hook:impl/search_id] 
-        run function ~/apply_vel:
-            data modify storage grappling_hook:temp p0 set from entity @s Pos
-            execute store result score @s bs.vel.x run data get storage grappling_hook:temp v[0] 1000
-            execute store result score @s bs.vel.y run data get storage grappling_hook:temp v[1] 1000
-            execute store result score @s bs.vel.z run data get storage grappling_hook:temp v[2] 1000
-            function #bs.move:apply_vel {scale:0.001,with:{on_collision:"function #bs.move:callback/slide"}}
+execute
+    as @e[tag=grappling_hook.arrow,tag=grappling_hook.arrow.summoned]
+    at @s
+    run function ~/arrow:
+        data remove storage grappling_hook:main temp.UUID
+        data modify entity @s damage set value 0.01
 
-            data modify storage grappling_hook:temp p1 set from entity @s Pos
-            data modify storage grappling_hook:temp v set value [0d,0d,0d]
-            data modify storage grappling_hook:temp v[0] set compute default float (storage grappling_hook:temp p1[0] - storage grappling_hook:temp p0[0])
-            data modify storage grappling_hook:temp v[1] set compute default float (storage grappling_hook:temp p1[1] - storage grappling_hook:temp p0[1])
-            data modify storage grappling_hook:temp v[2] set compute default float (storage grappling_hook:temp p1[2] - storage grappling_hook:temp p0[2])
+        execute
+            on origin
+            run function ./init_player:
+                data modify storage grappling_hook:main temp.UUID set from entity @s UUID
+                execute 
+                    if data entity @s Inventory[{Slot:-106b}].components."minecraft:enchantments"."grappling_hook:grappling_hook"
+                    store result score #level grappling_hook.data 
+                    run data get entity @s Inventory[{Slot:-106b}].components."minecraft:enchantments"."grappling_hook:grappling_hook"
+                execute 
+                    if data entity @s SelectedItem.components."minecraft:enchantments"."grappling_hook:grappling_hook"
+                    store result score #level grappling_hook.data 
+                    run data get entity @s SelectedItem.components."minecraft:enchantments"."grappling_hook:grappling_hook"
+                tag @s add grappling_hook.player.me
+        scoreboard players operation @s grappling_hook.arrow.power = #level grappling_hook.data
+        #kill other arrows from the same player
+        execute
+            as @e[tag=grappling_hook.arrow,tag=!grappling_hook.arrow.summoned]
+            run function ~/kill_arrow:
+                scoreboard players set #to_kill grappling_hook.data 0
+                execute on origin if entity @s[tag=grappling_hook.player.me] run scoreboard players set #to_kill grappling_hook.data 1
+                execute 
+                    if score #to_kill grappling_hook.data matches 1 
+                    run kill @s
+        execute
+            on origin
+            run tag @s remove grappling_hook.player.me
+        tag @s remove grappling_hook.arrow.summoned
 
-    # set speed
-    data modify entity @s data.grappling_hook.prev_motion set from storage grappling_hook:temp v
-    
 
-    tag @s remove grappling_hook.arrow.me
-    execute on origin run tag @s remove grappling_hook.me
+scoreboard players add @e[tag=grappling_hook.arrow] grappling_hook.data 1
+time_to_kill_in_second = 10
+time_to_kill = time_to_kill_in_second * 20
+raw f'kill @e[tag=grappling_hook.arrow,scores={{grappling_hook.data={time_to_kill}..}}]'

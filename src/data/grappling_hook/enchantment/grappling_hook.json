@@ -1,40 +1,80 @@
 {
-	"description": {
-		"translate": "grappling_hook.enchantement.description",
-		"fallback": "Power :"
-	},
-	"exclusive_set": "#grappling_hook:grappling_hook",
-	"supported_items": "#minecraft:enchantable/crossbow",
-	"weight": 1,
-	"max_level": 200,
-	"min_cost": {
-		"base": 50,
-		"per_level_above_first": 9
-	},
-	"max_cost": {
-		"base": 50,
-		"per_level_above_first": 9
-	},
-	"anvil_cost": 6,
-	"slots": [
-		"mainhand",
-		"offhand"
-	],
-	"effects": {
-		"minecraft:hit_block": [
-			{
-				"effect": {
-					"type": "minecraft:run_function",
-					"function": "grappling_hook:impl/grappling_hook/hit_block"
-				},
-				"requirements": {
-					"type": "minecraft:entity_properties",
-					"entity": "this",
-					"predicate": {
-						"minecraft:entity_type": "#minecraft:arrows"
-					}
-				}
-			}
-		]
-	}
+    "description": {
+        "translate": "grappling_hook.enchantement.description",
+        "fallback": "Power :"
+    },
+    "exclusive_set": "#grappling_hook:grappling_hook",
+    "supported_items": "#minecraft:enchantable/crossbow",
+    "weight": 1,
+    "max_level": 200,
+    "min_cost": {
+        "base": 50,
+        "per_level_above_first": 9
+    },
+    "max_cost": {
+        "base": 50,
+        "per_level_above_first": 9
+    },
+    "anvil_cost": 6,
+    "slots": [
+        "mainhand",
+        "offhand"
+    ],
+    "effects": {
+        "minecraft:hit_block": [
+            {
+                "effect": {
+                    "type": "minecraft:run_function",
+                    "function": "grappling_hook:impl/grappling_hook/hit_block"
+                },
+                "requirements": {
+                    "type": "minecraft:entity_properties",
+                    "entity": "this",
+                    "predicate": {
+                        "minecraft:entity_type": "#minecraft:arrows"
+                    }
+                }
+            }
+        ],
+        "minecraft:post_attack": [
+            {
+                "enchanted": "attacker",
+                "affected": "victim",
+                "effect": {
+                    "type": "minecraft:run_function",
+                    "function": "grappling_hook:impl/grappling_hook/add_victim_tag"
+                },
+                "requirements": {
+                    "type": "minecraft:entity_properties",
+                    "entity": "direct_attacker",
+                    "predicate": {
+                        "minecraft:entity_type": "#minecraft:arrows"
+                    }
+                }
+            },
+            {
+                "enchanted": "attacker",
+                "affected": "damaging_entity",
+                "effect": {
+                    "type": "minecraft:run_function",
+                    "function": "grappling_hook:impl/grappling_hook/post_attack"
+                },
+                "requirements": {
+                    "type": "minecraft:entity_properties",
+                    "entity": "direct_attacker",
+                    "predicate": {
+                        "minecraft:entity_type": "#minecraft:arrows"
+                    }
+                }
+            }
+        ],
+        "minecraft:projectile_spawned": [
+            {
+                "effect": {
+                    "type": "minecraft:run_function",
+                    "function": "grappling_hook:impl/grappling_hook/projectile_spawned"
+                }
+            }
+        ]
+    }
 }
